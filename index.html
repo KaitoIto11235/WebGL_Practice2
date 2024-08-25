@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>WebGL入門</title>
+    <script src="minMatrixb.js"></script>
+    <script src="main.js"></script> <!-- main.jsを読み込む -->
+
+    <!-- create vertex shader -->
+    <!-- attributeをつけた変数に、WebGL側であらかじめ仕込まれたデータが渡される -->
+    <!-- uniform修飾子をつけた変数は、すべての頂点に対して一律にに処理される情報をを渡す -->
+    <!-- lightDirectionは、ローカル座標上で計算された光源ベクトルであるが光源はワールド座標に固定されるべきだから、
+     モデルと一緒に座標変換するべきではない。そこで逆行列をかけ反対の座標変換をすることで、そのモデルの座標変換の影響を打ち消す-->
+    <!-- diffuseは拡散光、specularは反射光を表す -->
+    <!-- WebGLから頂点シェーダに渡される頂点の座標は座標変換前のもの。
+     なぜなら、WebGL側ではすべての頂点に対してまとめて操作することができないから（CPU）
+     そのため、モデル変換行列もシェーダに渡すことで、点光源のライトベクトルが計算できる。 -->
+    <script id="vertexShader" type="x-shader/x-vertex">
+      attribute vec3 position;
+      attribute vec4 color;
+      uniform mat4 mvpMatrix;
+      uniform float pointSize;
+      varying vec4 vColor;
+
+      void main(void){
+        vColor         = color;
+        gl_Position    = mvpMatrix * vec4(position, 1.0);
+        gl_PointSize   = pointSize;
+      }
+    </script>
+
+    <!-- create fragment shader -->
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+
+      varying vec4 vColor;
+
+      void main(void){
+        gl_FragColor  = vColor;
+      }
+    </script>
+  </head>
+
+  <body>
+    <!-- bodyタグの中にCanvasを配置する -->
+    <canvas id="canvas"></canvas>
+    <p>
+      <input id="point_size" type="range" value="10" min="10" max="100"> point size (1 to 10 pixels)
+  </p>
+  <p>
+      <input id="Points" type="radio" name="line" checked> gl.POINTS
+  </p>
+  <p>
+    <input id="lines" type="radio" name="line"> gl.LINES
+  </p>
+  <p>
+      <input id="line_strip" type="radio" name="line"> gl.LINE_STRIP
+  </p>
+  <p>
+      <input id="line_loop" type="radio" name="line"> gl.LINE_LOOP
+  </p>
+  </body>
+</html>
