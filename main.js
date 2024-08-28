@@ -5,6 +5,7 @@ let q = new qtnIV();
 let disp_x = 0;
 let disp_y = 0;
 const camRadius = 20; // 原点から初期カメラ位置の奥行距離
+let mouseOddClick = false;
 
 /*
 // mousedownイベントに登録する処理
@@ -31,11 +32,16 @@ function mouseMove(e){
     const cw = canvas.width;
 	const ch = canvas.height;
 	//const wh = 1 / Math.sqrt(cw * cw + ch * ch);
-	disp_x = (e.clientX - canvas.offsetLeft - cw * 0.5) / cw; // camvasの右端にマウスが来ると、そのx座標は1に等しくなるようにした。
-	disp_y = -(e.clientY - canvas.offsetTop - ch * 0.5) / ch; // 画面上のy軸は下向き？
+	disp_x = (e.clientX - canvas.offsetLeft - cw * 0.5) / cw; // camvasの右端にマウスが来ると、そのx座標は1
+	disp_y = -(e.clientY - canvas.offsetTop - ch * 0.5) / ch; // 画面上のy軸は下向きだからマイナス倍して上向きに
     disp_x *= camRadius;
     disp_y *= camRadius;
 }
+
+function mouseClick(e){
+    mouseOddClick = !mouseOddClick;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // HTMLからcanvas要素を取得する
     canvas = document.getElementById('canvas');
@@ -44,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // canvasのmousemoveイベントに処理を登録
     canvas.addEventListener('mousemove', mouseMove, true);
-    //canvas.addEventListener('mousedown', mouseDown, true);
+    canvas.addEventListener('click', mouseClick, true);
 
 
     // canvas要素からwebglコンテキストを取得する
@@ -89,42 +95,8 @@ document.addEventListener('DOMContentLoaded', function () {
     attStride[2] = 3;
     
     
-    const torusData = torus(64, 64, 0.5, 1.5);
-    //const stripedSphereData = stripedSphere(2, 51, 20);
-    const pointSphere = sphere(16, 16, 1.0);
+    
 
-    // トーラス用VBOの生成
-    const tPos = create_vbo(torusData.position);
-    const tNor = create_vbo(torusData.normal);
-    const tCol = create_vbo(torusData.color);
-    const tVBOList = [tPos, tCol, tNor];
-    const tIBO = create_ibo(torusData.index);
-
-    // 点のVBO生成
-	const pPos = create_vbo(pointSphere.position);
-	const pCol = create_vbo(pointSphere.color);
-	const pVBOList = [pPos, pCol, pPos];
-
-    // // 線の頂点位置
-	// const position = [
-	// 	-1.0, -1.0,  0.0,
-	// 	 1.0, -1.0,  0.0,
-	// 	-1.0,  1.0,  0.0,
-	// 	 1.0,  1.0,  0.0
-	// ];
-	
-	// // 線の頂点色
-	// const color = [
-	// 	 1.0, 1.0, 1.0, 1.0,
-	// 	 1.0, 0.0, 0.0, 1.0,
-	// 	 0.0, 1.0, 0.0, 1.0,
-	// 	 0.0, 0.0, 1.0, 1.0
-	// ];
-
-    // // 線のVBOとIBOの生成
-	// const lPos     = create_vbo(position);
-	// const lCol     = create_vbo(color);
-	// const lVBOList = [lPos, lCol];
 
     let uniLocation = new Array();
     // uniformLocationの取得　prgオブジェクトにあるシェーダのuniform変数’mvpMatrix’がuniform変数の中で何番目のものかを取得
@@ -183,20 +155,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		// クォータニオンを行列に適用
 		//const qMatrix = m.identity(m.create());
 		//q.toMatIV(accumQt, qMatrix);
-
-        // 回転のための軸ベクトルを算出
-        let dispPosition = [0, 0, 0];
-        // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
-        q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
-        // カメラ座標とマウス座標から回転軸としての法線ベクトルを計算
-        const axisVec = create_axis(camPosition, dispPosition, [0, 0, 0]);
-        let qt = q.identity(q.create());
-        //画面が正方形のとき、画面の四隅にマウスがあるときに係数の速さで回転する。
-        const rotateSpeed = 0.05 * Math.sqrt(disp_x ** 2 + disp_y ** 2)/(Math.sqrt(2) * camRadius);
-        q.rotate(rotateSpeed, axisVec, qt);
-        q.multiply(qt, accumQt, accumQt);
-        q.toVecIII(camPosition, qt, camPosition);
-        q.toVecIII(camUpDirection, qt, camUpDirection);
+        if(!mouseOddClick){
+            // 回転のための軸ベクトルを算出
+            let dispPosition = [0, 0, 0];
+            // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
+            q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
+            // カメラ座標とマウス座標から回転軸としての法線ベクトルを計算
+            const axisVec = create_axis(camPosition, dispPosition, [0, 0, 0]);
+            let qt = q.identity(q.create());
+            //画面が正方形のとき、画面の四隅にマウスがあるときに係数の速さで回転する。
+            const rotateSpeed = 0.05 * Math.sqrt(disp_x ** 2 + disp_y ** 2)/(Math.sqrt(2) * camRadius);
+            q.rotate(rotateSpeed, axisVec, qt);
+            q.multiply(qt, accumQt, accumQt);
+            q.toVecIII(camPosition, qt, camPosition);
+            q.toVecIII(camUpDirection, qt, camUpDirection);
+        }
 
 		// ビュー×プロジェクション座標変換行列
 		m.lookAt(camPosition, [0, 0, 0], camUpDirection, vMatrix);
@@ -205,8 +178,26 @@ document.addEventListener('DOMContentLoaded', function () {
 		m.identity(mMatrix);
 		m.multiply(tmpMatrix, mMatrix, mvpMatrix);
 
-        
+        let torusData;
+        if(!mouseOddClick){
+            torusData = torus(64, 64, 0.5, 1.5);
+        }else{
+            torusData = torus(64, 64, 0.5, 1.5, 1);
+        }
+        //const stripedSphereData = stripedSphere(2, 51, 20);
+        const pointSphere = sphere(16, 16, 1.0);
 
+        // トーラス用VBOの生成
+        const tPos = create_vbo(torusData.position);
+        const tNor = create_vbo(torusData.normal);
+        const tCol = create_vbo(torusData.color);
+        const tVBOList = [tPos, tCol, tNor];
+        const tIBO = create_ibo(torusData.index);
+
+        // 点のVBO生成
+        const pPos = create_vbo(pointSphere.position);
+        const pCol = create_vbo(pointSphere.color);
+        const pVBOList = [pPos, pCol, pPos];
         // トーラスのVBOとIBOをセット
         set_attribute(tVBOList, attLocation, attStride);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tIBO);
@@ -244,18 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
         gl.uniformMatrix4fv(uniLocation[3], false, invMatrix);
 		gl.drawArrays(lineOption, 0, pointSphere.position.length / 3);
 		
-		// 線を描画
-		// set_attribute(lVBOList, attLocation, attStride);
-		// m.identity(mMatrix);
-		// m.rotate(mMatrix, Math.PI / 2, [1, 0, 0], mMatrix);
-		// m.scale(mMatrix, [3.0, 3.0, 1.0], mMatrix);
-		// m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-		// gl.uniformMatrix4fv(uniLocation[0], false, mvpMatrix);
-		// gl.drawArrays(lineOption, 0, position.length / 3);
-		
 
-		// コンテキストの再描画
-		
         gl.flush();
 		
 		// ループのために再帰呼び出し
@@ -390,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // トーラスのモデルデータを生成する関数
-    function torus(row, column, irad, orad, color){
+    function torus(row, column, irad, orad, mouseEffect, color){
         let pos = new Array();
         let nor = new Array();
         let col = new Array(); 
@@ -405,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 // 管を作る
                 const tr = 2 * Math.PI * ii / column;
-                const tx = (rr * irad + orad) * Math.cos(tr);
+                let tx = (rr * irad + orad) * Math.cos(tr);
                 const ty = ry * irad;
                 const tz = (rr * irad + orad) * Math.sin(tr);
                 const rx = rr * Math.cos(tr);       // 頂点Aの法線は、トーラスを頂点Aを含むよう輪切りし、
