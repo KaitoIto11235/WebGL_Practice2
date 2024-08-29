@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     uniLocation[4] = gl.getUniformLocation(prg, 'lightPosition');
     uniLocation[5] = gl.getUniformLocation(prg, 'eyeDirection');
     uniLocation[6] = gl.getUniformLocation(prg, 'ambientColor');
+    uniLocation[7] = gl.getUniformLocation(prg, 'mousePos');
 
     
     // 各種行列の生成と初期化
@@ -137,6 +138,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const camPosition = [0.0, 0.0, camRadius];
     const camUpDirection = [0.0, 1.0, 0.0];
 	
+    // それまでの回転を考慮したマウス座標
+    let dispPosition = [0, 0, 0];
 
     // 恒常ループ
     (function(){
@@ -155,16 +158,15 @@ document.addEventListener('DOMContentLoaded', function () {
 		// クォータニオンを行列に適用
 		//const qMatrix = m.identity(m.create());
 		//q.toMatIV(accumQt, qMatrix);
+
         if(!mouseOddClick){
-            // 回転のための軸ベクトルを算出
-            let dispPosition = [0, 0, 0];
             // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
             q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
             // カメラ座標とマウス座標から回転軸としての法線ベクトルを計算
             const axisVec = create_axis(camPosition, dispPosition, [0, 0, 0]);
             let qt = q.identity(q.create());
             //画面が正方形のとき、画面の四隅にマウスがあるときに係数の速さで回転する。
-            const rotateSpeed = 0.05 * Math.sqrt(disp_x ** 2 + disp_y ** 2)/(Math.sqrt(2) * camRadius);
+            const rotateSpeed = 0.1 * Math.sqrt(disp_x ** 2 + disp_y ** 2)/(Math.sqrt(2) * camRadius);
             q.rotate(rotateSpeed, axisVec, qt);
             q.multiply(qt, accumQt, accumQt);
             q.toVecIII(camPosition, qt, camPosition);
@@ -209,6 +211,13 @@ document.addEventListener('DOMContentLoaded', function () {
 		gl.uniform3fv(uniLocation[4], lightPosition);
 		gl.uniform3fv(uniLocation[5], eyeDirection);
 		gl.uniform4fv(uniLocation[6], ambientColor);
+        if(mouseOddClick){
+            // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
+            q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
+            gl.uniform3fv(uniLocation[7], dispPosition);
+        }else{
+            gl.uniform3fv(uniLocation[7], [0.0, 0.0, 0.0]);
+        }
 		gl.drawElements(gl.TRIANGLES, torusData.index.length, gl.UNSIGNED_SHORT, 0);
 
 

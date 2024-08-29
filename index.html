@@ -19,6 +19,7 @@
       attribute vec3 position;
       attribute vec4 color;
       attribute vec3 normal;
+      uniform vec3 mousePos;
       uniform mat4 mvpMatrix;
       uniform float pointSize;
       uniform mat4 mMatrix;
@@ -27,10 +28,14 @@
       varying vec4 vColor;
 
       void main(void){
-        vPosition      = (mMatrix * vec4(position, 1.0)).xyz;
+        float innerProduct = dot(normal, normalize(mousePos));
+        vec3 position2 = vec3(position.x + pow(max(0.0, innerProduct), 2.0) * (mousePos.x - position.x), 
+                              position.y + pow(max(0.0, innerProduct), 2.0) * (mousePos.y - position.y), 
+                              position.z + pow(max(0.0, innerProduct), 2.0) * (mousePos.z - position.z));
+        vPosition      = (mMatrix * vec4(position2, 1.0)).xyz;
         vNormal        = normal;
         vColor         = color;
-        gl_Position    = mvpMatrix * vec4(position, 1.0);
+        gl_Position    = mvpMatrix * vec4(position2, 1.0);
         gl_PointSize   = pointSize;
       }
     </script>
