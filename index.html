@@ -69,20 +69,33 @@
   <body>
     <!-- bodyタグの中にCanvasを配置する -->
     <canvas id="canvas"></canvas>
+    <h1>CheckParameter</h1>
+    <h2>MouseRole</h2>
+    <p>
+      <input id="Mouse_to_Null" type="radio" name="mouseRole" checked> NULL
+    </p>
+    <p>
+      <input id="Mouse_to_cameraRotation" type="radio" name="mouseRole"> ROTATION
+    </p>
+    <p>
+      <input id="Mouse_to_modelTransform" type="radio" name="mouseRole"> TRANSFORM
+    </p>
+    
+    <h2>sphereType</h2>
     <p>
       <input id="point_size" type="range" value="10" min="10" max="100"> point size (1 to 10 pixels)
-  </p>
-  <p>
-      <input id="Points" type="radio" name="line" checked> gl.POINTS
-  </p>
-  <p>
-    <input id="lines" type="radio" name="line"> gl.LINES
-  </p>
-  <p>
-      <input id="line_strip" type="radio" name="line"> gl.LINE_STRIP
-  </p>
-  <p>
-      <input id="line_loop" type="radio" name="line"> gl.LINE_LOOP
-  </p>
+    </p>
+    <p>
+        <input id="Points" type="radio" name="line" checked> gl.POINTS
+    </p>
+    <p>
+      <input id="lines" type="radio" name="line"> gl.LINES
+    </p>
+    <p>
+        <input id="line_strip" type="radio" name="line"> gl.LINE_STRIP
+    </p>
+    <p>
+        <input id="line_loop" type="radio" name="line"> gl.LINE_LOOP
+    </p>
   </body>
 </html>

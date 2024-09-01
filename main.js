@@ -45,8 +45,8 @@ function mouseClick(e){
 document.addEventListener('DOMContentLoaded', function () {
     // HTMLからcanvas要素を取得する
     canvas = document.getElementById('canvas');
-    canvas.width = 1500;
-    canvas.height = 1000;
+    canvas.width = 800;
+    canvas.height = 700;
 
     // canvasのmousemoveイベントに処理を登録
     canvas.addEventListener('mousemove', mouseMove, true);
@@ -62,6 +62,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // エレメントへの参照を取得
+	const eMouse_to_cameraRotation    = document.getElementById('Mouse_to_cameraRotation');
+	const eMouse_to_modelTransform    = document.getElementById('Mouse_to_modelTransform');
+
 	const ePoints    = document.getElementById('Points');
 	const eLines     = document.getElementById('lines');
 	const eLineStrip = document.getElementById('line_strip');
@@ -159,7 +162,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		//const qMatrix = m.identity(m.create());
 		//q.toMatIV(accumQt, qMatrix);
 
-        if(!mouseOddClick){
+        let mouseRole = 0;
+		if(eMouse_to_cameraRotation.checked){
+            mouseRole = "cameraRotation";
+        }else if(eMouse_to_modelTransform.checked){
+            mouseRole = "modelTransform";
+        }
+        //if(!mouseOddClick){
+        if(mouseRole === "cameraRotation"){
             // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
             q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
             // カメラ座標とマウス座標から回転軸としての法線ベクトルを計算
@@ -172,6 +182,14 @@ document.addEventListener('DOMContentLoaded', function () {
             q.toVecIII(camPosition, qt, camPosition);
             q.toVecIII(camUpDirection, qt, camUpDirection);
         }
+        if(mouseRole === "modelTransform"){
+            // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
+            q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
+            gl.uniform3fv(uniLocation[7], dispPosition);
+        }else{
+            gl.uniform3fv(uniLocation[7], [0.0, 0.0, 0.0]); // ここでmousePosに0ベクトルを渡すことで、内積が0となり、モデルの変形が起きないようにしている。
+        }
+        
 
 		// ビュー×プロジェクション座標変換行列
 		m.lookAt(camPosition, [0, 0, 0], camUpDirection, vMatrix);
@@ -181,11 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		m.multiply(tmpMatrix, mMatrix, mvpMatrix);
 
         let torusData;
-        if(!mouseOddClick){
-            torusData = torus(64, 64, 0.5, 1.5);
-        }else{
-            torusData = torus(64, 64, 0.5, 1.5, 1);
-        }
+        torusData = torus(64, 64, 0.5, 1.5);
         //const stripedSphereData = stripedSphere(2, 51, 20);
         const pointSphere = sphere(16, 16, 1.0);
 
@@ -211,13 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		gl.uniform3fv(uniLocation[4], lightPosition);
 		gl.uniform3fv(uniLocation[5], eyeDirection);
 		gl.uniform4fv(uniLocation[6], ambientColor);
-        if(mouseOddClick){
-            // マウス座標に現在までの回転を加えることで、カメラから見たマウスの座標を算出
-            q.toVecIII([disp_x, disp_y, 0], accumQt, dispPosition);
-            gl.uniform3fv(uniLocation[7], dispPosition);
-        }else{
-            gl.uniform3fv(uniLocation[7], [0.0, 0.0, 0.0]);
-        }
+        
 		gl.drawElements(gl.TRIANGLES, torusData.index.length, gl.UNSIGNED_SHORT, 0);
 
 
@@ -379,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // トーラスのモデルデータを生成する関数
-    function torus(row, column, irad, orad, mouseEffect, color){
+    function torus(row, column, irad, orad,color){
         let pos = new Array();
         let nor = new Array();
         let col = new Array(); 
