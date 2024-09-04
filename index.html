@@ -29,9 +29,9 @@
 
       void main(void){
         float innerProduct = dot(normal, normalize(mousePos));
-        vec3 position2 = vec3(position.x + pow(max(0.0, innerProduct), 2.0) * (mousePos.x - position.x), 
-                              position.y + pow(max(0.0, innerProduct), 2.0) * (mousePos.y - position.y), 
-                              position.z + pow(max(0.0, innerProduct), 2.0) * (mousePos.z - position.z));
+        vec3 position2 = vec3(position.x + pow(max(0.0, innerProduct), 4.0) * (mousePos.x - position.x), 
+                              position.y + pow(max(0.0, innerProduct), 4.0) * (mousePos.y - position.y), 
+                              position.z + pow(max(0.0, innerProduct), 4.0) * (mousePos.z - position.z));
         vPosition      = (mMatrix * vec4(position2, 1.0)).xyz;
         vNormal        = normal;
         vColor         = color;
@@ -78,7 +78,18 @@
       <input id="Mouse_to_cameraRotation" type="radio" name="mouseRole"> ROTATION
     </p>
     <p>
+      <input id="CameraRotation_speed" type="range" value="1" min="1" max="10"> speed
+    </p>
+    <p>
       <input id="Mouse_to_modelTransform" type="radio" name="mouseRole"> TRANSFORM
+    </p>
+
+    <h2>CameraGaze</h2>
+    <p>
+      <input id="GazeOrigin" type="radio" name="cameraGaze" checked> [0, 0, 0]
+    </p>
+    <p>
+      <input id="GazeInfinity" type="radio" name="cameraGaze"> [0, 0, -1000]
     </p>
     
     <h2>sphereType</h2>
@@ -86,16 +97,16 @@
       <input id="point_size" type="range" value="10" min="10" max="100"> point size (1 to 10 pixels)
     </p>
     <p>
-        <input id="Points" type="radio" name="line" checked> gl.POINTS
+      <input id="Points" type="radio" name="line" checked> gl.POINTS
     </p>
     <p>
       <input id="lines" type="radio" name="line"> gl.LINES
     </p>
     <p>
-        <input id="line_strip" type="radio" name="line"> gl.LINE_STRIP
+      <input id="line_strip" type="radio" name="line"> gl.LINE_STRIP
     </p>
     <p>
-        <input id="line_loop" type="radio" name="line"> gl.LINE_LOOP
+      <input id="line_loop" type="radio" name="line"> gl.LINE_LOOP
     </p>
   </body>
 </html>
