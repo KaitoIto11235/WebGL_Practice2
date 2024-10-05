@@ -9,8 +9,8 @@ WebGL, HTML, CSS, JavaScript
 
 ## パラメータ説明
 **MouseRole**  
-ROTATION: マウスの方向にカメラが移動する設定  
-TRANSFORM: マウスの方向にトーラス表面が引っ張られる設定
+ROTATION: マウス方向・原点中心でカメラが回転する設定  
+TRANSFORM: マウス方向にトーラス表面が引っ張られる設定
 
 **CameraGaze**  
 0, 0, 0: カメラは常にトーラスを向く設定  
